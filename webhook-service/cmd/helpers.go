@@ -6,9 +6,7 @@ import (
 	"log"
 	"review-pr/webhook-service/internal/github"
 	"review-pr/webhook-service/internal/githubapi"
-	"review-pr/webhook-service/internal/llm"
 	"review-pr/webhook-service/internal/llmapi"
-	"review-pr/webhook-service/internal/prompt"
 	"strings"
 )
 
@@ -93,24 +91,21 @@ func getPosition(patch string) int {
 	return position
 }
 
-func QueryLLMWithChunks(llmResponseChan chan<- Envelope, chunkChan <-chan Envelope, errorChan chan error, authorization string, prNumber int, commitSHA string, prFiles github.PRFileChangesResponseModel) {
+func QueryLLMWithChunks[I, O any](engine *llmapi.LLMEngine[I, O], llmResponseChan chan<- Envelope, chunkChan <-chan Envelope, errorChan chan error, authorization string, prNumber int, commitSHA string, prFiles github.PRFileChangesResponseModel) {
 	for msg := range chunkChan {
-		var llmResponse *llm.TogetherAiResponseModel
+		var llmResponse O
 		var err error
-
 		for _, chunk := range msg.data.([]github.DiffChunk) {
-			var llmRequest llm.TogetherAiRequestModel
-			llmRequest, err = prompt.Prompt(chunk)
-			if err != nil {
-				errorChan <- fmt.Errorf("PROMPT GENERATION ERROR: %v", err)
-			}
+			llmRequest := engine.Prompt.Generate(chunk, *configInstance)
 
-			llmResponse, err = llmapi.QueryLMM(llmRequest)
+			llmResponse, err = engine.Query.QueryLLM(llmRequest)
 			if err != nil {
 				errorChan <- fmt.Errorf("LLM RESPONSE ERROR: %v", err)
+				return
 			}
 
-			if strings.Contains(llmResponse.Choices[0].Message.Content, "No guideline violations found.") {
+			content := extractContent(llmResponse)
+			if strings.Contains(content, "No guideline violations found.") {
 				continue
 			}
 
@@ -123,7 +118,7 @@ func QueryLLMWithChunks(llmResponseChan chan<- Envelope, chunkChan <-chan Envelo
 				Comments: []github.Comment{
 					{
 						Position: int64(getPosition(chunk.OriginalDiff)),
-						Body:     llmResponse.Choices[0].Message.Content,
+						Body:     content,
 						Path:     chunk.FilePath,
 					},
 				},
@@ -142,4 +137,17 @@ func QueryLLMWithChunks(llmResponseChan chan<- Envelope, chunkChan <-chan Envelo
 
 		llmResponseChan <- Envelope{data: llmResponse}
 	}
+}
+
+func extractContent(response any) string {
+	switch r := response.(type) {
+	case *llmapi.TogetherAiResponseModel:
+		if len(r.Choices) > 0 {
+			return r.Choices[0].Message.Content
+		}
+	case *llmapi.OpenAiResponseModel:
+
+	}
+
+	return ""
 }

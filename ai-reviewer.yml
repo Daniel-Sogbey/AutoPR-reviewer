@@ -1,0 +1,6 @@
+# ai-reviewer.yml
+llm_provider: togetherai
+model: "codellama/CodeLlama-13b-Instruct-hf"
+auth_key: ""
+guidelines: "coding-guidelines.md"
+language: Go

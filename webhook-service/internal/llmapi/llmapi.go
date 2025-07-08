@@ -1,28 +1,19 @@
 package llmapi
 
 import (
-	"encoding/json"
-	"net/http"
-	"os"
-	"review-pr/webhook-service/internal/llm"
-	"review-pr/webhook-service/internal/requester"
-	"strings"
+	"review-pr/webhook-service/internal/config"
+	"review-pr/webhook-service/internal/github"
 )
 
-func QueryLMM(query llm.TogetherAiRequestModel) (*llm.TogetherAiResponseModel, error) {
-	authorization := os.Getenv("TOGETHER_AI_LLM_AUTH_KEY")
-	headers := http.Header{}
-	headers.Add("Content-Type", "application/json")
+type LLMQuery[I any, O any] interface {
+	QueryLLM(input I) (O, error)
+}
 
-	bytes, err := json.Marshal(query)
-	if err != nil {
-		return nil, err
-	}
+type PromptGenerator[I any] interface {
+	Generate(chunk github.DiffChunk, config config.Config) I
+}
 
-	response, err := requester.Requester[llm.TogetherAiResponseModel](http.MethodPost, "https://api.together.xyz/v1/chat/completions", authorization, headers, strings.NewReader(string(bytes)))
-	if err != nil {
-		return nil, err
-	}
-
-	return response, nil
+type LLMEngine[I any, O any] struct {
+	Prompt PromptGenerator[I]
+	Query  LLMQuery[I, O]
 }

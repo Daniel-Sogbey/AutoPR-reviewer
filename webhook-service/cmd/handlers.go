@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"review-pr/webhook-service/internal/github"
 	"review-pr/webhook-service/internal/githubapi"
+	"review-pr/webhook-service/internal/llmapi"
+	"time"
 )
 
 type Queue struct {
@@ -20,7 +22,7 @@ type Envelope struct {
 	data any
 }
 
-func handleWebhook(w http.ResponseWriter, r *http.Request) {
+func handleWebhook(w http.ResponseWriter, r *http.Request, chunkChan chan Envelope, llmResponseChan chan Envelope, errorChan chan error, engine any) {
 	bodyBytes, err := io.ReadAll(r.Body)
 	if err != nil {
 		log.Println("error reading request body: ", err)
@@ -69,28 +71,24 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("pr changed file response:", prChangedFilesResponse)
 	fmt.Println("pr meta data response:", prMetaDataResponse)
 
-	queue := Queue{
-		chunkChan:       make(chan Envelope, 2),
-		llmResponseChan: make(chan Envelope, 2),
-		errorChan:       make(chan error, 5),
+	go ExtractDiffChunk(chunkChan, errorChan, *prChangedFilesResponse)
+
+	switch llm := engine.(type) {
+	case *llmapi.LLMEngine[*llmapi.TogetherAiRequestModel, *llmapi.TogetherAiResponseModel]:
+		go QueryLLMWithChunks(llm, llmResponseChan, chunkChan, errorChan, installationTokenResponse.Token, pullRequestEventModel.Number, prMetaDataResponse.Head.Sha, *prChangedFilesResponse)
+	case *llmapi.LLMEngine[*llmapi.OpenAiRequestModel, *llmapi.OpenAiResponseModel]:
+		go QueryLLMWithChunks(llm, llmResponseChan, chunkChan, errorChan, installationTokenResponse.Token, pullRequestEventModel.Number, prMetaDataResponse.Head.Sha, *prChangedFilesResponse)
+	default:
+		errorChan <- fmt.Errorf("unsupported LLM Engine")
+		return
 	}
-
-	go func() {
-		ExtractDiffChunk(queue.chunkChan, queue.errorChan, *prChangedFilesResponse)
-		close(queue.chunkChan)
-	}()
-
-	go func() {
-		QueryLLMWithChunks(queue.llmResponseChan, queue.chunkChan, queue.errorChan, installationTokenResponse.Token, pullRequestEventModel.Number, prMetaDataResponse.Head.Sha, *prChangedFilesResponse)
-		close(queue.llmResponseChan)
-	}()
-
+	
 	select {
-	case llmResponse := <-queue.llmResponseChan:
-		log.Println("LLM RESPONSE", llmResponse)
-	case err = <-queue.errorChan:
-		log.Println("Error in PR REVIEW SYSTEM", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	case llmResponse := <-llmResponseChan:
+		log.Println("LLM RESPONSE RECEIVED", llmResponse)
+	case <-time.After(30 * time.Second):
+		log.Println("Timeout llm taking too much time to return response")
+		w.WriteHeader(http.StatusGatewayTimeout)
 	}
 
 }
