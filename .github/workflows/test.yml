@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: Daniel-Sogbey/review-pr@v1
+      - uses: Daniel-Sogbey/AutoPR-reviewer@v1
         with:
           TOGETHERAI_API_KEY: ${{secrets.TOGETHER_API_KEY}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
