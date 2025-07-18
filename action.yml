@@ -7,9 +7,9 @@ inputs:
     description: "API for the TogetherAI LLM"
     required: true
 
-  guideline_path:
-    description: "Project coding guideline path"
-    required: true
+#  guideline_path:
+#    description: "Project coding guideline path"
+#    required: true
 
   github_token:
     description: "Github token to enable posting comments on PR"
