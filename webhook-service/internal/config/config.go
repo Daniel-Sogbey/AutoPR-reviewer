@@ -10,9 +10,9 @@ type Config struct {
 	LLMProvider       string `yaml:"llm_provider"`
 	Model             string `yaml:"model"`
 	AuthKey           string `yaml:"auth_key"`
-	GuidelinesPath    string `json:"guidelines"`
+	GuidelinesPath    string `yaml:"guidelines"`
 	Language          string `yaml:"language,omitempty"`
-	GuidelinesContent []byte
+	GuidelinesContent []byte `yaml:"-"`
 }
 
 func LoadConfig(wd string) (*Config, error) {
@@ -27,13 +27,16 @@ func LoadConfig(wd string) (*Config, error) {
 		return nil, err
 	}
 
-	guidelineFilePath := filepath.Join(wd, "CODING_GUIDELINES.md")
+	guidelineFilePath := filepath.Join(wd, cfg.GuidelinesPath)
 	guidelines, err := os.ReadFile(guidelineFilePath)
 	if err != nil {
 		return nil, err
 	}
 
 	cfg.GuidelinesContent = guidelines
+
+	apiKey := os.Getenv("TOGETHERAI_API_KEY")
+	cfg.AuthKey = apiKey
 
 	return &cfg, nil
 }

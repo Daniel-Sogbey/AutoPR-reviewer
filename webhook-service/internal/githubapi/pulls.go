@@ -1,12 +1,12 @@
 package githubapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"review-pr/webhook-service/internal/github"
 	"review-pr/webhook-service/internal/requester"
-	"strings"
 )
 
 func GetPRMetadata(authorization string, prNumber int) (*github.PRMetadataResponseModel, error) {
@@ -31,17 +31,17 @@ func GetPRChangedFiles(authorization string, prNumber int) (*github.PRFileChange
 	return prFileChangesResponse, nil
 }
 
-func CreateReviewCommentOnPR(authorization string, prNumber int, commitSHA string, requestModel github.PRReviewRequestModel) (*github.PRReviewResponseModel, error) {
+func CreateReviewCommentOnPR(authorization string, prNumber int, requestModel github.PRReviewRequestModel) (*github.PRReviewResponseModel, error) {
 	headers := http.Header{}
 	headers.Add("Accept", "application/vnd.github+json")
 	headers.Add("X-GitHub-Api-Version", "2022-11-28")
 
-	bytes, err := json.Marshal(requestModel)
+	reqBytes, err := json.Marshal(requestModel)
 	if err != nil {
 		return nil, err
 	}
 
-	body := strings.NewReader(string(bytes))
+	body := bytes.NewReader(reqBytes)
 
 	prReviewCommentResponse, err := requester.Requester[github.PRReviewResponseModel](http.MethodPost, fmt.Sprintf("https://api.github.com/repos/Daniel-Sogbey/code-reviewer/pulls/%d/reviews", prNumber), authorization, headers, body)
 	if err != nil {

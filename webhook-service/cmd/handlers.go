@@ -12,12 +12,6 @@ import (
 	"time"
 )
 
-type Queue struct {
-	chunkChan       chan Envelope
-	llmResponseChan chan Envelope
-	errorChan       chan error
-}
-
 type Envelope struct {
 	data any
 }
@@ -74,15 +68,15 @@ func handleWebhook(w http.ResponseWriter, r *http.Request, chunkChan chan Envelo
 	go ExtractDiffChunk(chunkChan, errorChan, *prChangedFilesResponse)
 
 	switch llm := engine.(type) {
-	case *llmapi.LLMEngine[*llmapi.TogetherAiRequestModel, *llmapi.TogetherAiResponseModel]:
-		go QueryLLMWithChunks(llm, llmResponseChan, chunkChan, errorChan, installationTokenResponse.Token, pullRequestEventModel.Number, prMetaDataResponse.Head.Sha, *prChangedFilesResponse)
-	case *llmapi.LLMEngine[*llmapi.OpenAiRequestModel, *llmapi.OpenAiResponseModel]:
-		go QueryLLMWithChunks(llm, llmResponseChan, chunkChan, errorChan, installationTokenResponse.Token, pullRequestEventModel.Number, prMetaDataResponse.Head.Sha, *prChangedFilesResponse)
+	case llmapi.LLMEngine[*llmapi.TogetherAiRequestModel, *llmapi.TogetherAiResponseModel]:
+		go QueryLLMWithChunks(&llm, llmResponseChan, chunkChan, errorChan, installationTokenResponse.Token, pullRequestEventModel.Number, prMetaDataResponse.Head.Sha, *prChangedFilesResponse)
+	case llmapi.LLMEngine[*llmapi.OpenAiRequestModel, *llmapi.OpenAiResponseModel]:
+		go QueryLLMWithChunks(&llm, llmResponseChan, chunkChan, errorChan, installationTokenResponse.Token, pullRequestEventModel.Number, prMetaDataResponse.Head.Sha, *prChangedFilesResponse)
 	default:
 		errorChan <- fmt.Errorf("unsupported LLM Engine")
 		return
 	}
-	
+
 	select {
 	case llmResponse := <-llmResponseChan:
 		log.Println("LLM RESPONSE RECEIVED", llmResponse)

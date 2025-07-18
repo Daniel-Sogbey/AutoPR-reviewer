@@ -126,7 +126,7 @@ func QueryLLMWithChunks[I, O any](engine *llmapi.LLMEngine[I, O], llmResponseCha
 
 			//push to pr code review
 			var reviewCommentOnPR *github.PRReviewResponseModel
-			reviewCommentOnPR, err = githubapi.CreateReviewCommentOnPR(authorization, prNumber, commitSHA, prCommentRequestModel)
+			reviewCommentOnPR, err = githubapi.CreateReviewCommentOnPR(authorization, prNumber, prCommentRequestModel)
 			if err != nil {
 				errorChan <- fmt.Errorf("REVIEW COMMENT ON PR ERROR: %v", err)
 			}

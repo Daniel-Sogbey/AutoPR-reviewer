@@ -1,0 +1,22 @@
+name: AI-REVIEWER
+description: Automated PR reviewer using LLMs and project guidelines
+author: Daniel-Sogbey
+
+inputs:
+  togetherai_api_key:
+    description: "API for the TogetherAI LLM"
+    required: true
+
+  guideline_path:
+    description: "Project coding guideline path"
+    required: true
+
+  github_token:
+    description: "Github token to enable posting comments on PR"
+    required: true
+
+
+
+  runs:
+    using: docker
+    image: Dockerfile
