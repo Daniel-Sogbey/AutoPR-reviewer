@@ -17,4 +17,3 @@ jobs:
         with:
           togetherai_api_key: ${{secrets.TOGETHER_API_KEY}}
           github_token: ${{secrets.GITHUB_TOKEN}}
-          guideline_path: ''
