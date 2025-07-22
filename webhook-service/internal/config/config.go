@@ -2,6 +2,7 @@ package config
 
 import (
 	"gopkg.in/yaml.v3"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -36,6 +37,7 @@ func LoadConfig(wd string) (*Config, error) {
 	cfg.GuidelinesContent = guidelines
 
 	apiKey := os.Getenv("TOGETHERAI_API_KEY")
+	log.Println("TOGETHERAI_API_KEY AUTH KEY FROM GITHUB SECRETS: ", apiKey)
 	cfg.AuthKey = apiKey
 
 	return &cfg, nil
