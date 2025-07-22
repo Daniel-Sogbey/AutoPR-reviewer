@@ -44,7 +44,6 @@ func generateJWT(appID string, privateKey *rsa.PrivateKey) (string, error) {
 
 func Auth() (*github.InstallationTokenResponseModel, error) {
 	privateKey, err := loadPrivateKey(os.Getenv("GITHUB_APP_PRIVATE_KEY_PATH"))
-	
 	if err != nil {
 		return nil, err
 	}
