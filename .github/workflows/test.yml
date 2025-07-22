@@ -15,5 +15,5 @@ jobs:
 
       - uses: Daniel-Sogbey/AutoPR-reviewer@v5
         with:
-          togetherai_api_key: ${{secrets.TOGETHER_API_KEY}}
+          togetherai_api_key: ${{secrets.TOGETHERAI_API_KEY}}
           github_token: ${{secrets.GITHUB_TOKEN}}
