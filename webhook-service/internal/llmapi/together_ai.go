@@ -54,7 +54,6 @@ func NewTogetherAI(authKey string) *TogetherAI {
 }
 
 func (t TogetherAI) QueryLLM(query *TogetherAiRequestModel) (*TogetherAiResponseModel, error) {
-	//authorization := os.Getenv("TOGETHER_AI_LLM_AUTH_KEY")
 	headers := http.Header{}
 	headers.Add("Content-Type", "application/json")
 

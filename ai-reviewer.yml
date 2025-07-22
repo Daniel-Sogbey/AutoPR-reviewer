@@ -1,6 +1,6 @@
 # ai-reviewer.yml
 llm_provider: togetherai
 model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo"
-auth_key: ""
+auth_key: "578766ab85cdf08d1a9f2b3c4f19978c57de3018ab67d355bfe58fe61cc24b5d"
 guidelines: "CODING_GUIDELINES.md"
 language: Go
