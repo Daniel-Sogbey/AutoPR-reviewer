@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"net/http"
 )
 
@@ -16,15 +17,13 @@ func Requester[T any](method, url, authorization string, headers http.Header, bo
 		return nil, err
 	}
 
+	maps.Copy(req.Header, headers)
+
 	client := http.Client{}
-
-	req.Header = headers
-
 	response, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
-
 	defer response.Body.Close()
 
 	responseBytes, err := io.ReadAll(response.Body)

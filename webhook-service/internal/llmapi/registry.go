@@ -17,6 +17,11 @@ func NewLLMEngineRegistry(cfg *config.Config) any {
 			Prompt: NewTogetherAI(cfg.AuthKey),
 			Query:  NewTogetherAI(cfg.AuthKey),
 		}
+	case "gemini":
+		return LLMEngine[*GeminiRequestModel, *GeminiResponseModel]{
+			Prompt: NewGeminiModel(),
+			Query:  NewGeminiModel(),
+		}
 	default:
 		log.Printf("Unsupported LLM Provider: %s", cfg.LLMProvider)
 		return nil

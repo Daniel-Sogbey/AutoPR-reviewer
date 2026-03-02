@@ -6,13 +6,14 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"net/http"
 	"os"
 	"review-pr/webhook-service/internal/github"
 	"review-pr/webhook-service/internal/requester"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func loadPrivateKey(keyPath string) (*rsa.PrivateKey, error) {
@@ -44,7 +45,7 @@ func generateJWT(appID string, privateKey *rsa.PrivateKey) (string, error) {
 
 func Auth() (*github.InstallationTokenResponseModel, error) {
 	privateKey, err := loadPrivateKey(os.Getenv("GITHUB_APP_PRIVATE_KEY_PATH"))
-	
+
 	if err != nil {
 		return nil, err
 	}

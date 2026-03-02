@@ -32,7 +32,7 @@ func getConfigInstance() *config.Config {
 		configInstance = cfg
 	})
 
-	log.Println("CONFIG INFO: ", configInstance)
+	log.Println("CONFIG INFO: Model: ", configInstance.LLMProvider)
 	return configInstance
 }
 

@@ -5,7 +5,7 @@ set -e
 export TOGETHERAI_API_KEY="${INPUT_TOGETHERAI_API_KEY}"
 export  GITHUB_TOKEN="${INPUT_GITHUB_TOKEN}"
 
-curl -X POST https://37298b918e00.ngrok-free.app/init \
+curl -X POST https://cb2b-154-161-129-42.ngrok-free.app/init \
 -H "Content-Type:application/json" \
 -d '{
       "repo":"'$GITHUB_REPOSITORY'",
